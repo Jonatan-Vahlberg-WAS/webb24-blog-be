@@ -1,4 +1,6 @@
+const bcrypt = require("bcrypt")
 const express = require("express");
+
 const router = express.Router();
 
 const User = require("../models/user.model")
@@ -23,6 +25,12 @@ router.post("/login/", async (req, res) => {
         if (!user) {
            throw new Error("User not found")
         }
+        const isPasswordSame = await bcrypt.compare(req.body.password, user.password)
+
+        if(!isPasswordSame){
+           throw new Error("User not found")
+        }
+        
         res.json(user)
     }
     catch(error) {
