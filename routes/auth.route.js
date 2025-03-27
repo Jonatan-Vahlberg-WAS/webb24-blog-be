@@ -3,7 +3,8 @@ const express = require("express");
 
 const router = express.Router();
 
-const User = require("../models/user.model")
+const User = require("../models/user.model");
+const { generateAccessJWT, verifyAccessToken } = require("../utils/jwt");
 
 router.post("/register/", async (req, res) => {
     try {
@@ -30,7 +31,16 @@ router.post("/login/", async (req, res) => {
         if(!isPasswordSame){
            throw new Error("User not found")
         }
-        
+        const token = generateAccessJWT({
+            userId: user._id
+        })
+        console.log("token", token)
+        const dToken = verifyAccessToken(token)
+        console.log("dToken", dToken)
+        setTimeout(() => {
+            verifyAccessToken(token)
+        }, 16 * 1000)
+
         res.json(user)
     }
     catch(error) {
