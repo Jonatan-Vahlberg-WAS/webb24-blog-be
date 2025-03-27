@@ -34,14 +34,11 @@ router.post("/login/", async (req, res) => {
         const token = generateAccessJWT({
             userId: user._id
         })
-        console.log("token", token)
-        const dToken = verifyAccessToken(token)
-        console.log("dToken", dToken)
-        setTimeout(() => {
-            verifyAccessToken(token)
-        }, 16 * 1000)
 
-        res.json(user)
+        res.json({
+            ...user.toObject(),
+            token
+        })
     }
     catch(error) {
         console.warn("Error logging in user", error)

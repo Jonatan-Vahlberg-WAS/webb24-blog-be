@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/post.model");
 const Category = require("../models/category.model");
+const { verifyAccessToken } = require("../utils/jwt");
+const authMiddleware = require("../middlewares/authMiddleware");
 
 router.get("/", async (req, res) => {
     const user = req.query.user
@@ -41,10 +43,18 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
     try {
-        console.log(req.body)
-        const post = await Post.create(req.body)
+        const userId = req.userId;
+
+        const newPost = {
+            title: req.body.title,
+            content: req.body.content,
+            user: userId,
+            categories: []
+        }
+
+        const post = await Post.create(newPost)
         res.status(201).json(post);
     } catch (error) {
         console.warn("Error creating post", error);
@@ -52,7 +62,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
     try {
         const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate(["user", "categories"]);
         if (!post) {
@@ -65,7 +75,7 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
     try {
         const post = await Post.findByIdAndDelete(req.params.id);
         if (!post) {
