@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/post.model");
 const Category = require("../models/category.model");
-const { verifyAccessToken } = require("../utils/jwt");
+
 const authMiddleware = require("../middlewares/authMiddleware");
 
 router.get("/", async (req, res) => {
