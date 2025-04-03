@@ -1,6 +1,6 @@
 const { verifyAccessToken } = require("../utils/jwt");
 
-function authMiddleware(req, res, next) {
+function adminMiddleware(req, res, next) {
   try {
     const authorization = req.headers.authorization;
     if (!authorization) {
@@ -12,7 +12,9 @@ function authMiddleware(req, res, next) {
       throw new Error("No token");
     }
     const decyptedToken = verifyAccessToken(token);
-    console.log(decyptedToken);
+    if(!decyptedToken.isAdmin) {
+      throw new Error("Not an admin")
+    }
     req.userId = decyptedToken.userId
     req.isAdmin = decyptedToken.isAdmin || false
     next();
@@ -25,4 +27,4 @@ function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware
+module.exports = adminMiddleware

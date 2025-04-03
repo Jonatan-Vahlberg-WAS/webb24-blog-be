@@ -32,7 +32,8 @@ router.post("/login/", async (req, res) => {
            throw new Error("User not found")
         }
         const token = generateAccessJWT({
-            userId: user._id
+            userId: user._id,
+            isAdmin: user.isAdmin || false
         })
 
         res.json({

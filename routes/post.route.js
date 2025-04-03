@@ -64,7 +64,17 @@ router.post("/", authMiddleware, async (req, res) => {
 
 router.put("/:id", authMiddleware, async (req, res) => {
     try {
-        const post = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate(["user", "categories"]);
+        const post = await Post.findOne({
+            _id: req.params.id,
+            user: req.userId
+        })
+
+        post.title = req.body.title || post.title
+        post.content = req.body.content || post.content
+        post.categories = req.body.categories || post.categories || []
+
+        await post.save()
+
         if (!post) {
             throw new Error("Post not found");
         }
@@ -77,7 +87,14 @@ router.put("/:id", authMiddleware, async (req, res) => {
 
 router.delete("/:id", authMiddleware, async (req, res) => {
     try {
-        const post = await Post.findByIdAndDelete(req.params.id);
+        const filter = {
+            _id: req.params.id
+        }
+        if(!req.isAdmin) {
+            filter.user = req.userId
+        }
+        console.log("FILTER", filter)
+        const post = await Post.findOneAndDelete(filter)
         if (!post) {
             throw new Error("Post not found");
         }
