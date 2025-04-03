@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 
 const User = require("../models/user.model");
-const { generateAccessJWT, verifyAccessToken } = require("../utils/jwt");
+const { generateAccessJWT, generateRefreshJWT, verifyRefreshToken } = require("../utils/jwt");
 
 router.post("/register/", async (req, res) => {
     try {
@@ -35,9 +35,13 @@ router.post("/login/", async (req, res) => {
             userId: user._id,
             isAdmin: user.isAdmin || false
         })
+        const refreshToken = generateRefreshJWT({
+            userId: user._id,
+        })
 
         res.json({
-            token
+            token,
+            refreshToken
         })
     }
     catch(error) {
@@ -47,4 +51,37 @@ router.post("/login/", async (req, res) => {
         })
     }
 })
+
+
+router.post("/token/refresh/", async (req, res) => {
+    const token = req.body.token
+    try {
+        console.log("TOKEN ", token, req.body)
+        if(!token) {
+            throw new Error("No token")
+        }
+        const decodedToken = verifyRefreshToken(token)
+        if(!decodedToken){
+            throw new Error("Token expired")
+        }
+
+        const user = await User.findById(decodedToken.userId)
+        if(!user) {
+            throw new Error("no user found")
+        }
+        const newAccessToken = generateAccessJWT({
+            userId: user._id,
+            isAdmin: user.isAdmin || false
+        })
+        res.json({
+            token: newAccessToken
+        })
+    } catch (error) {
+        return res.status(401).json({
+            message: "Unauthorized",
+          });
+    }
+
+})
+
 module.exports = router
