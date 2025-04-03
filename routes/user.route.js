@@ -6,13 +6,19 @@ const authMiddleware = require("../middlewares/authMiddleware");
 
 router.get("/me", authMiddleware, async (req, res) => {
     const userId = req.userId;
-    const user = await User.findById(userId).select("-password")
-    if(user) {
+    try {
+        const user = await User.findById(userId).select("-password")
+        if(!user) {
+            throw new Error("Unauthorized")
+        }
         return res.json(user)
+        
+    } catch (error) {
+        res.status(401).json({
+            message: "Unauthorized"
+        })
+        
     }
-    res.status(401).json({
-        message: "Unauthorized"
-    })
 })
 
 module.exports = router
