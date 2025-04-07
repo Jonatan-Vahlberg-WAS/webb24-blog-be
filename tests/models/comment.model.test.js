@@ -1,18 +1,28 @@
 const Comment = require("../../models/comment.model");
-const mongoose = require("mongoose");
+const UserFactory = require("../factories/user.factory");
+const PostFactory = require("../factories/post.factory");
 
 describe("Comment Model", () => {
-  const validCommentData = {
-    content: "Test comment content",
-    post: new mongoose.Types.ObjectId(),
-    user: new mongoose.Types.ObjectId(),
-  };
+  beforeEach(async function () {
+    const user = await UserFactory.create();
+    const post = await PostFactory.create();
+    this.user = user;
+    this.post = post;
+  });
 
-  test("should create a valid comment", async () => {
-    const comment = await Comment.create(validCommentData);
+  let validCommentData = {
+    content: "Test comment content",
+  }
+
+  test("should create a valid comment", async function () {
+    const comment = await Comment.create({
+      ...validCommentData,
+      post: this.post._id,
+      user: this.user._id,
+    });
     expect(comment.content).toBe(validCommentData.content);
-    expect(comment.post.toString()).toBe(validCommentData.post.toString());
-    expect(comment.user.toString()).toBe(validCommentData.user.toString());
+    expect(comment.post.toString()).toBe(this.post._id.toString());
+    expect(comment.user.toString()).toBe(this.user._id.toString());
     expect(comment.createdAt).toBeDefined();
     expect(comment.updatedAt).toBeDefined();
   });

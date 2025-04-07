@@ -47,4 +47,13 @@ describe("User Model", () => {
     const isMatch = await bcrypt.compare(validUserData.password, user.password);
     expect(isMatch).toBe(true);
   });
+
+  test("should rehash password if it has been changed", async () => {
+    const user = await User.create(validUserData);
+    const newPassword = "newpassword";
+    user.password = newPassword;
+    await user.save();
+    const isMatch = await bcrypt.compare(newPassword, user.password);
+    expect(isMatch).toBe(true);
+  });
 });
