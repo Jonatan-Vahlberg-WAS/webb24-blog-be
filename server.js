@@ -30,11 +30,15 @@ app.use("/api/comments", commentRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-  mongoose.connect(MONGO_URL)
-  .then(() => {
-    console.log("Connected to MongoDB");
-  })
-  .catch((err) => {
-    console.warn("Error connecting to MongoDB", err);
-  });
+  if(process.env.NODE_ENV !== "test") {
+    mongoose.connect(MONGO_URL)
+    .then(() => {
+      console.log("Connected to MongoDB");
+    })
+    .catch((err) => {
+      console.warn("Error connecting to MongoDB", err);
+    });
+  }
 });
+
+module.exports = app;
