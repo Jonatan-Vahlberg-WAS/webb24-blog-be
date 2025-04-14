@@ -13,6 +13,25 @@ app.use(express.json()); // parse json bodies in the request
 app.use(cookieParser()); // parse cookies
 const authRoutes = require("./routes/auth.route")
 const authCookieRoutes = require("./routes/auth-cookie.route")
+
+app.get("/", (req, res) => {
+  res.json({
+    routes: [
+      {
+        path: "/auth/register",
+        method: "POST",
+        description: "Register a new user"
+      },
+      {
+        path: "/auth/login",
+        method: "POST",
+        description: "Login a user"
+      },
+      "More routes will be added soon..."
+    ]
+  })
+})
+
 app.use("/auth", authRoutes);
 // app.use("/auth", authCookieRoutes);
 
