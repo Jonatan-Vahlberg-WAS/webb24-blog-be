@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 
 const app = express();
 const port = 3000;
-const MONGO_URL = process.env.MONGO_URI || "mongodb://localhost:27017/blog"
+const MONGO_URL = process.env.MONGODB_URI || "mongodb://localhost:27017/blog"
 
 app.use(cors()) // cors
 app.use(express.json()); // parse json bodies in the request
