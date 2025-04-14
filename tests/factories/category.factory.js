@@ -11,7 +11,7 @@ class CategoryFactory {
    * @returns {Object} - Fake category data
    */
   static generate(overrides = {}) {
-    const name = faker.commerce.department();
+    const name = `Category ${Math.random()} - ${faker.commerce.department()}`;
     return {
       name,
       slug: faker.helpers.slugify(name).toLowerCase(),
