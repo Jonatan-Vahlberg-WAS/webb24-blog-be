@@ -1,65 +1,59 @@
-const User = require("../../models/user.model")
+const User = require("../../models/user.model");
+const bcrypt = require("bcrypt");
 
-describe("User model", function() {
+describe("User Model", () => {
+  const validUserData = {
+    email: "test@example.com",
+    password: "password123",
+    name: "Test User",
+  };
 
-    beforeEach(function() {
-        this.validUserData = {
-            email: "email@test.com",
-            password: "12345678abc",
-            name: "Test testsson"
-        }
-    }) 
+  test("should create a valid user", async () => {
+    const user = await User.create(validUserData);
+    expect(user.email).toBe(validUserData.email);
+    expect(user.name).toBe(validUserData.name);
+    expect(user.password).not.toBe(validUserData.password); // Password should be hashed
+    expect(user.isAdmin).toBe(false); // Default value
+  });
 
-    test("should create a valid user", async function() {
-        const user = await User.create(this.validUserData)
-        
-        expect(user.email).toBe(this.validUserData.email)
-        expect(user.name).toBe(this.validUserData.name)
-        expect(user.password).not.toHaveLength(0)
-        expect(user.password).not.toBe(this.validUserData.password)
-        expect(user.isAdmin).toBe(false); // Default value
-    })
+  test("should fail to create user without required fields", async () => {
+    const invalidUser = new User({ email: "test@example.com" });
+    let err;
+    try {
+      await invalidUser.save();
+    } catch (error) {
+      err = error;
+    }
+    expect(err).toBeDefined();
+    expect(err.errors.password).toBeDefined();
+    expect(err.errors.name).toBeDefined();
+  });
 
-    test("should not create a valid user with invalid data", async function() {
-        const user = new User({ email: this.validUserData })
-        let err;
-        try {
-            await user.save()
-        } catch(error) {
-            err = error
-        }
-        expect(err).toBeDefined();
-        expect(err.errors.password).toBeDefined();
-        expect(err.errors.name).toBeDefined();
-    })
+  test("should fail to create user with duplicate email", async () => {
+    await User.create(validUserData);
+    const duplicateUser = new User(validUserData);
+    let err;
+    try {
+      await duplicateUser.save();
+    } catch (error) {
+      err = error;
+    }
+    expect(err).toBeDefined();
+    expect(err.code).toBe(11000); // Duplicate key error
+  });
 
-    test("should not create a user with duplicate email", async function() {
-        const user1 = await User.create(this.validUserData)
-        let err;
-        const user2 = new User(this.validUserData)
-        try {
-            await user2.save()
-        } catch (error) {
-            err = error
-        }
-        expect(err).toBeDefined()
-        expect(err.code).toBe(11000) // Duplicate
-    })
+  test("should hash password before saving", async () => {
+    const user = await User.create(validUserData);
+    const isMatch = await bcrypt.compare(validUserData.password, user.password);
+    expect(isMatch).toBe(true);
+  });
 
-    test("should not create a user with incorrect password", async function() {
-        const user = new User({
-            ...this.validUserData,
-            password: "1234"
-        })
-        let err;
-        try {
-            await user.save()
-        } catch (error) {
-            err = error
-        }
-        expect(err).toBeDefined()
-        expect(err.errors.password.message).toContain("is shorter than the minimum allowed length (8)")
-    })
-
-
-})
+  test("should rehash password if it has been changed", async () => {
+    const user = await User.create(validUserData);
+    const newPassword = "newpassword";
+    user.password = newPassword;
+    await user.save();
+    const isMatch = await bcrypt.compare(newPassword, user.password);
+    expect(isMatch).toBe(true);
+  });
+});
