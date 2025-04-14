@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Comment = require("../models/comment.model");
+const authMiddleware = require("../middlewares/authMiddleware");
 
 // Get all comments for a specific post
 router.get("/posts/:postId/comments", async (req, res) => {
@@ -15,12 +16,12 @@ router.get("/posts/:postId/comments", async (req, res) => {
 });
 
 // Create a new comment
-router.post("/posts/:postId/comments", async (req, res) => {
+router.post("/posts/:postId/comments", authMiddleware, async (req, res) => {
   try {
     const comment = new Comment({
       content: req.body.content,
       post: req.params.postId,
-      user: req.body.user,
+      user: req.userId
     });
     const newComment = await comment.save();
     await newComment.populate("user", "name email");
@@ -32,9 +33,12 @@ router.post("/posts/:postId/comments", async (req, res) => {
 });
 
 // Update a comment
-router.put("/:commentId", async (req, res) => {
+router.put("/:commentId", authMiddleware, async (req, res) => {
   try {
-    const comment = await Comment.findById(req.params.commentId);
+    const comment = await Comment.findOne({
+      _id: req.params.commentId,
+      user: req.userId
+    })
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
@@ -51,7 +55,10 @@ router.put("/:commentId", async (req, res) => {
 // Delete a comment
 router.delete("/:commentId", async (req, res) => {
   try {
-    const comment = await Comment.findById(req.params.commentId);
+    const comment = await Comment.findOne({
+      _id: req.params.commentId,
+      user: req.userId
+    })
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
