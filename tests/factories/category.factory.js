@@ -14,7 +14,11 @@ class CategoryFactory {
     const name = `Category ${Math.random()} - ${faker.commerce.department()}`;
     return {
       name,
-      slug: faker.helpers.slugify(name).toLowerCase(),
+      slug: faker.helpers
+        .slugify(name)
+        .toLowerCase()
+        .replace(/[^\w-]+/g, "")
+        .replace(/ /g, "-"),
       ...overrides,
     };
   }
